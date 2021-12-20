@@ -214,10 +214,10 @@ class WebAssetServer implements AssetReader {
               globals.processManager.runSync(
                   <String>['mkcert', '-cert-file', 'cert.pem', '-key-file', 'key.pem', 'localhost'],
                   workingDirectory: '${globals.fs.path.current}/.dart_tool/');
-            } on Exception catch(e, s) {
-              final String msg = 'Failed to create local certificate authority files to support $webLaunchUrl,'
-                  ' please make sure "mkcert" command is installed. If "mkcert" is not supported,you can also '
-                  'copy the cert.pem/key.pem files to the .dart_tool directory. "\n$e';
+            } on ProcessException catch(e, s) {
+              final String msg = 'Failed to create certificate authority files to support the $webLaunchUrl, please '
+                  'make sure the mkcert command is installed. If mkcert is not supported in your development environment, '
+                  'you can also copy cert.pem/key.pem to local .dart_tool directory by yourself to support it."\n$e';
               globals.printError(msg, stackTrace: s);
               throwToolExit(msg);
             }
