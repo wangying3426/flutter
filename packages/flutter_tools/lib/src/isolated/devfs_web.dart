@@ -207,16 +207,17 @@ class WebAssetServer implements AssetReader {
     for (int i = 0; i <= kMaxRetries; i++) {
       try {
         if (isHttps(webLaunchUrl)) {
-          final File certFile = globals.fs.file('.dart_tool/localhost.pem');
-          final File keyFile = globals.fs.file('.dart_tool/localhost-key.pem');
+          final File certFile = globals.fs.file('.dart_tool/cert.pem');
+          final File keyFile = globals.fs.file('.dart_tool/key.pem');
           if (!certFile.existsSync() || !keyFile.existsSync()) {
             try {
-              globals.processManager.runSync(<String>['mkcert', 'localhost'],
+              globals.processManager.runSync(
+                  <String>['mkcert', '-cert-file', 'cert.pem', '-key-file', 'key.pem', 'localhost'],
                   workingDirectory: '${globals.fs.path.current}/.dart_tool/');
             } on Exception catch(e, s) {
-              final String msg = 'Failed to create local certificate authority file to support $webLaunchUrl, '
-                  'please ensure the "mkcert localhost" command works fine, or you can just copy the CA file '
-                  'named localhost.pem and localhost-key.pem to .dart_tool directory":\n$e';
+              final String msg = 'Failed to create local certificate authority files to support $webLaunchUrl,'
+                  ' please make sure "mkcert" command is installed. If "mkcert" is not supported,you can also '
+                  'copy the cert.pem/key.pem files to the .dart_tool directory. "\n$e';
               globals.printError(msg, stackTrace: s);
               throwToolExit(msg);
             }
