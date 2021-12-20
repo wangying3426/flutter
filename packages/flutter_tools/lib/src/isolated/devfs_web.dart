@@ -210,7 +210,16 @@ class WebAssetServer implements AssetReader {
           final File certFile = globals.fs.file('.dart_tool/localhost.pem');
           final File keyFile = globals.fs.file('.dart_tool/localhost-key.pem');
           if (!certFile.existsSync() || !keyFile.existsSync()) {
-            globals.processManager.runSync(<String>['mkcert', 'localhost'], workingDirectory: '${globals.fs.path.current}/.dart_tool/');
+            try {
+              globals.processManager.runSync(<String>['mkcert', 'localhost'],
+                  workingDirectory: '${globals.fs.path.current}/.dart_tool/');
+            } on Exception catch(e, s) {
+              final String msg = 'Failed to create local certificate authority file to support $webLaunchUrl, '
+                  'please ensure the "mkcert localhost" command works fine, or you can just copy the CA file '
+                  'named localhost.pem and localhost-key.pem to .dart_tool directory":\n$e';
+              globals.printError(msg, stackTrace: s);
+              throwToolExit(msg);
+            }
           }
           final SecurityContext context = SecurityContext();
           context.useCertificateChain(certFile.absolute.path);
@@ -222,9 +231,7 @@ class WebAssetServer implements AssetReader {
         break;
       } on SocketException catch (e, s) {
         if (i >= kMaxRetries) {
-          final File certFile = globals.fs.file('.dart_tool/localhost.pem');
-
-          globals.printError('${globals.fs.path.current} :: ${certFile.absolute.path}Failed to bind web development server:\n$e', stackTrace: s);
+          globals.printError('Failed to bind web development server:\n$e', stackTrace: s);
           throwToolExit('Failed to bind web development server:\n$e');
         }
         await Future<void>.delayed(const Duration(milliseconds: 100));
