@@ -21,6 +21,7 @@ import 'package:shelf/shelf.dart';
 import 'package:test/fake.dart';
 
 import '../../src/common.dart';
+import '../../src/context.dart';
 import '../../src/testbed.dart';
 
 const List<int> kTransparentImage = <int>[
@@ -943,6 +944,45 @@ void main() {
 
     await webDevFS.destroy();
   }));
+
+  testUsingContext('Can start web server with https URL configured by "--web-launch-url"', () async {
+    final File outputFile = globals.fs.file(globals.fs.path.join('lib', 'main.dart'))
+      ..createSync(recursive: true);
+    outputFile.parent.childFile('a.sources').writeAsStringSync('');
+    outputFile.parent.childFile('a.json').writeAsStringSync('{}');
+    outputFile.parent.childFile('a.map').writeAsStringSync('{}');
+
+    globals.processManager.runSync(<String>['mkcert', 'localhost'], workingDirectory: '${globals.fs.path.current}/.dart_tool/');
+
+    final WebDevFS webDevFS = WebDevFS(
+      hostname: 'any',
+      port: 0,
+      packagesFilePath: '.packages',
+      urlTunneller: null,
+      useSseForDebugProxy: true,
+      useSseForDebugBackend: true,
+      useSseForInjectedClient: true,
+      buildInfo: BuildInfo.debug,
+      enableDwds: false,
+      enableDds: false,
+      entrypoint: Uri.base,
+      testMode: true,
+      expressionCompiler: null,
+      chromiumLauncher: null,
+      nullAssertions: true,
+      nativeNullAssertions: true,
+      nullSafetyMode: NullSafetyMode.sound,
+      webLaunchUrl: 'https://localhost'
+    );
+    webDevFS.requireJS.createSync(recursive: true);
+    webDevFS.stackTraceMapper.createSync(recursive: true);
+
+    final Uri uri = await webDevFS.create();
+
+    expect(uri.scheme, 'https');
+    expect(uri.host, 'localhost');
+    await webDevFS.destroy();
+  });
 
   test('allows frame embedding', () async {
     final WebAssetServer webAssetServer = await WebAssetServer.start(

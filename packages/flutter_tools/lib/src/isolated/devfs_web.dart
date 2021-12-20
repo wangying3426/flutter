@@ -5,6 +5,7 @@
 // @dart = 2.8
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwds/data/build_result.dart';
@@ -167,6 +168,9 @@ class WebAssetServer implements AssetReader {
     return _webMemoryFS.write(codeFile, manifestFile, sourcemapFile, metadataFile);
   }
 
+  static bool isHttps(String url) {
+    return url != null && url.startsWith('https');
+  }
   /// Start the web asset server on a [hostname] and [port].
   ///
   /// If [testMode] is true, do not actually initialize dwds or the shelf static
@@ -190,6 +194,7 @@ class WebAssetServer implements AssetReader {
     NullSafetyMode nullSafetyMode, {
     bool testMode = false,
     DwdsLauncher dwdsLauncher = Dwds.start,
+    String webLaunchUrl,
   }) async {
     InternetAddress address;
     if (hostname == 'any') {
@@ -201,11 +206,25 @@ class WebAssetServer implements AssetReader {
     const int kMaxRetries = 4;
     for (int i = 0; i <= kMaxRetries; i++) {
       try {
-        httpServer = await HttpServer.bind(address, port ?? await globals.os.findFreePort());
+        if (isHttps(webLaunchUrl)) {
+          final File certFile = globals.fs.file('.dart_tool/localhost.pem');
+          final File keyFile = globals.fs.file('.dart_tool/localhost-key.pem');
+          if (!certFile.existsSync() || !keyFile.existsSync()) {
+            globals.processManager.runSync(<String>['mkcert', 'localhost'], workingDirectory: '${globals.fs.path.current}/.dart_tool/');
+          }
+          final SecurityContext context = SecurityContext();
+          context.useCertificateChain(certFile.absolute.path);
+          context.usePrivateKey(keyFile.absolute.path);
+          httpServer = await HttpServer.bindSecure(address, port ?? await globals.os.findFreePort(), context);
+        } else {
+          httpServer = await HttpServer.bind(address, port ?? await globals.os.findFreePort());
+        }
         break;
       } on SocketException catch (e, s) {
         if (i >= kMaxRetries) {
-          globals.printError('Failed to bind web development server:\n$e', stackTrace: s);
+          final File certFile = globals.fs.file('.dart_tool/localhost.pem');
+
+          globals.printError('${globals.fs.path.current} :: ${certFile.absolute.path}Failed to bind web development server:\n$e', stackTrace: s);
           throwToolExit('Failed to bind web development server:\n$e');
         }
         await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -640,6 +659,7 @@ class WebDevFS implements DevFS {
     @required this.nativeNullAssertions,
     @required this.nullSafetyMode,
     this.testMode = false,
+    this.webLaunchUrl,
   }) : _port = port;
 
   final Uri entrypoint;
@@ -659,6 +679,7 @@ class WebDevFS implements DevFS {
   final bool nativeNullAssertions;
   final int _port;
   final NullSafetyMode nullSafetyMode;
+  final String webLaunchUrl;
 
   WebAssetServer webAssetServer;
 
@@ -743,6 +764,7 @@ class WebDevFS implements DevFS {
       expressionCompiler,
       nullSafetyMode,
       testMode: testMode,
+      webLaunchUrl: webLaunchUrl,
     );
     final int selectedPort = webAssetServer.selectedPort;
     if (buildInfo.dartDefines.contains('FLUTTER_WEB_AUTO_DETECT=true')) {
@@ -750,10 +772,18 @@ class WebDevFS implements DevFS {
     } else if (buildInfo.dartDefines.contains('FLUTTER_WEB_USE_SKIA=true')) {
       webAssetServer.webRenderer = WebRendererMode.canvaskit;
     }
-    if (hostname == 'any') {
-      _baseUri = Uri.http('localhost:$selectedPort', webAssetServer.basePath);
+    if (WebAssetServer.isHttps(webLaunchUrl)) {
+      if (hostname == 'any') {
+        _baseUri = Uri.https('localhost:$selectedPort', webAssetServer.basePath);
+      } else {
+        _baseUri = Uri.https('$hostname:$selectedPort', webAssetServer.basePath);
+      }
     } else {
-      _baseUri = Uri.http('$hostname:$selectedPort', webAssetServer.basePath);
+      if (hostname == 'any') {
+        _baseUri = Uri.http('localhost:$selectedPort', webAssetServer.basePath);
+      } else {
+        _baseUri = Uri.http('$hostname:$selectedPort', webAssetServer.basePath);
+      }
     }
     return _baseUri;
   }

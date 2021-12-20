@@ -130,12 +130,12 @@ abstract class ChromiumDevice extends Device {
     // for the web initialization and server logic.
     String url;
     if (debuggingOptions.webLaunchUrl != null) {
-      final RegExp pattern = RegExp(r'^((http)?:\/\/)[^\s]+');
+      final RegExp pattern = RegExp(r'^((http|https)?:\/\/)[^\s]+');
       if (pattern.hasMatch(debuggingOptions.webLaunchUrl!)) {
         url = debuggingOptions.webLaunchUrl!;
       } else {
         url = platformArgs['uri']! as String;
-        _logger.printStatus('"${debuggingOptions.webLaunchUrl}" is not a vaild HTTP URL,"$url" will be used.');
+        _logger.printStatus('"${debuggingOptions.webLaunchUrl}" is not a vaild HTTP/HTTPS URL,"$url" will be used.');
       }
     } else {
       url = platformArgs['uri']! as String;
