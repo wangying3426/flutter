@@ -334,7 +334,8 @@ abstract class Widget extends DiagnosticableTree {
   /// A short, textual description of this widget.
   @override
   String toStringShort() {
-    final String type = objectRuntimeType(this, 'Widget');
+    final String type = FlutterError.isErrorReporting ? runtimeType.toString()
+        : objectRuntimeType(this, 'Widget');
     return key == null ? type : '$type-$key';
   }
 
@@ -4343,10 +4344,12 @@ abstract class Element extends DiagnosticableTree implements BuildContext {
   String debugGetCreatorChain(int limit) {
     final List<String> chain = <String>[];
     Element? node = this;
+    FlutterError.isErrorReporting = true;
     while (chain.length < limit && node != null) {
       chain.add(node.toStringShort());
       node = node._parent;
     }
+    FlutterError.isErrorReporting = false;
     if (node != null)
       chain.add('\u22EF');
     return chain.join(' \u2190 ');
