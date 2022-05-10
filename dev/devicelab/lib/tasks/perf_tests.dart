@@ -353,10 +353,10 @@ TaskFunction createFullscreenTextfieldPerfE2ETest() {
   ).run;
 }
 
-TaskFunction createClipperCachePerfE2ETest() {
+TaskFunction createClipperAndShaderMaskCachePerfE2ETest() {
   return PerfTest.e2e(
     '${flutterDirectory.path}/dev/benchmarks/macrobenchmarks',
-    'test/clipper_cache_perf_e2e.dart',
+    'test/clipper_and_shader_mask_cache_perf_e2e.dart',
   ).run;
 }
 
@@ -381,13 +381,6 @@ TaskFunction createColorFilterCachePerfE2ETest() {
   return PerfTest.e2e(
     '${flutterDirectory.path}/dev/benchmarks/macrobenchmarks',
     'test/color_filter_cache_perf_e2e.dart',
-  ).run;
-}
-
-TaskFunction createShaderMaskCachePerfE2ETest() {
-  return PerfTest.e2e(
-    '${flutterDirectory.path}/dev/benchmarks/macrobenchmarks',
-    'test/shader_mask_cache_perf_e2e.dart',
   ).run;
 }
 

@@ -8,8 +8,8 @@ import 'util.dart';
 
 void main() {
   macroPerfTestE2E(
-    'clipper_cache_perf',
-    kClipperCacheRouteName,
+    'clipper_and_shader_mask_cache_perf',
+    kClipperAndShaderMaskCacheRouteName,
     pageDelay: const Duration(seconds: 1),
     duration: const Duration(seconds: 10),
   );

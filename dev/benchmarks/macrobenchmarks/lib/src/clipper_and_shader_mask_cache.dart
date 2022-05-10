@@ -7,13 +7,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'picture_cache.dart';
 
-class ClipperCachePage extends StatefulWidget {
-  const ClipperCachePage({super.key});
+class ClipperAndShaderMaskCachePage extends StatefulWidget {
+  const ClipperAndShaderMaskCachePage({super.key});
   @override
-  State<ClipperCachePage> createState() => _ClipperCachePageState();
+  State<ClipperAndShaderMaskCachePage> createState() => _ClipperAndShaderMaskCachePageState();
 }
 
-class _ClipperCachePageState extends State<ClipperCachePage>
+class _ClipperAndShaderMaskCachePageState extends State<ClipperAndShaderMaskCachePage>
     with TickerProviderStateMixin {
   final double _animateOffset = 100;
   final ScrollController _controller = ScrollController();
@@ -24,7 +24,7 @@ class _ClipperCachePageState extends State<ClipperCachePage>
   void initState() {
     super.initState();
     const double itemHeight = 140;
-    _topMargin = (window.physicalSize.height / window.devicePixelRatio - itemHeight * 3) / 2;
+    _topMargin = (window.physicalSize.height / window.devicePixelRatio - itemHeight * 4) / 2;
     if (_topMargin < 0) {
       _topMargin = 0;
     }
@@ -50,23 +50,24 @@ class _ClipperCachePageState extends State<ClipperCachePage>
           SizedBox(height: _topMargin),
           ClipPath(
             clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: _makeChild(0, _isComplex)
+            child: _buildClipChild(0, _isComplex)
           ),
           ClipRect(
             clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: _makeChild(1, _isComplex)
+            child: _buildClipChild(1, _isComplex)
           ),
           ClipRRect(
             clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: _makeChild(2, _isComplex)
+            child: _buildClipChild(2, _isComplex)
           ),
+          _buildShaderMask(2, _isComplex),
           const SizedBox(height: 1000),
         ],
       ),
     );
   }
 
-  Widget _makeChild(int itemIndex, bool complex) {
+  Widget _buildClipChild(int itemIndex, bool complex) {
     final BoxDecoration decoration = BoxDecoration(
       color: Colors.white70,
       boxShadow: const <BoxShadow>[
@@ -80,6 +81,29 @@ class _ClipperCachePageState extends State<ClipperCachePage>
       child: Container(
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
         decoration: complex ? decoration : null,
+        child: ListItem(index: itemIndex),
+      ),
+    );
+  }
+
+  Widget _buildShaderMask(int itemIndex, bool complex) {
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return const RadialGradient(
+          center: Alignment.topLeft,
+          radius: 1.0,
+          colors: <Color>[Colors.yellow, Colors.white70],
+          tileMode: TileMode.mirror,
+        ).createShader(bounds);
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+        decoration: complex ? const BoxDecoration(boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.white,
+            blurRadius: 5.0,
+          ),
+        ]) : null,
         child: ListItem(index: itemIndex),
       ),
     );

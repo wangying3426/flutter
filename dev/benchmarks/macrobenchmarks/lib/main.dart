@@ -11,7 +11,7 @@ import 'src/animated_image.dart';
 import 'src/animated_placeholder.dart';
 import 'src/animation_with_microtasks.dart';
 import 'src/backdrop_filter.dart';
-import 'src/clipper_cache.dart';
+import 'src/clipper_and_shader_mask_cache.dart';
 import 'src/color_filter_and_fade.dart';
 import 'src/color_filter_cache.dart';
 import 'src/cubic_bezier.dart';
@@ -59,14 +59,13 @@ class MacrobenchmarksApp extends StatelessWidget {
         kTextRouteName: (BuildContext context) => const TextPage(),
         kFullscreenTextRouteName: (BuildContext context) => const TextFieldPage(),
         kAnimatedPlaceholderRouteName: (BuildContext context) => const AnimatedPlaceholderPage(),
-        kClipperCacheRouteName: (BuildContext context) => const ClipperCachePage(),
+        kClipperAndShaderMaskCacheRouteName: (BuildContext context) => const ClipperAndShaderMaskCachePage(),
         kColorFilterAndFadeRouteName: (BuildContext context) => const ColorFilterAndFadePage(),
         kColorFilterCacheRouteName: (BuildContext context) => const ColorFilterCachePage(),
         kFadingChildAnimationRouteName: (BuildContext context) => const FilteredChildAnimationPage(FilterType.opacity),
         kImageFilteredTransformAnimationRouteName: (BuildContext context) => const FilteredChildAnimationPage(FilterType.rotateFilter),
         kMultiWidgetConstructionRouteName: (BuildContext context) => const MultiWidgetConstructTable(10, 20),
         kHeavyGridViewRouteName: (BuildContext context) => const HeavyGridViewPage(),
-        kShaderMaskCacheRouteName: (BuildContext context) => const ShaderMaskCachePage(),
         kSimpleScrollRouteName: (BuildContext context) => const SimpleScroll(),
         kStackSizeRouteName: (BuildContext context) => const StackSizePage(),
         kAnimationWithMicrotasksRouteName: (BuildContext context) => const AnimationWithMicrotasks(),
@@ -171,10 +170,10 @@ class HomePage extends StatelessWidget {
             },
           ),
           ElevatedButton(
-            key: const Key(kClipperCacheRouteName),
-            child: const Text('Clipper Cache'),
+            key: const Key(kClipperAndShaderMaskCacheRouteName),
+            child: const Text('Clipper and ShaderMask Cache'),
             onPressed: () {
-              Navigator.pushNamed(context, kClipperCacheRouteName);
+              Navigator.pushNamed(context, kClipperAndShaderMaskCacheRouteName);
             },
           ),
           ElevatedButton(
@@ -189,13 +188,6 @@ class HomePage extends StatelessWidget {
             child: const Text('Color Filter Cache'),
             onPressed: () {
               Navigator.pushNamed(context, kColorFilterCacheRouteName);
-            },
-          ),
-          ElevatedButton(
-            key: const Key(kShaderMaskCacheRouteName),
-            child: const Text('Shader Mask Cache'),
-            onPressed: () {
-              Navigator.pushNamed(context, kShaderMaskCacheRouteName);
             },
           ),
           ElevatedButton(
